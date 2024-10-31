@@ -27,41 +27,71 @@ diamonds <- diamonds %>% rename(
 ## Exercise 1
 
 ```{r}
-# Do some preliminary investigations & cleaning
+colSums(is.na(diamonds))
+# No NAs present in the data set 
 
+clean_diamonds <- diamonds %>% 
+  filter(length_mm > 0 & width_mm > 0 & depth_mm > 0)
 
+clean_diamonds %>% 
+  group_by(cut) %>% 
+  summarise(count = n(),
+            mean_price = mean(price),
+            min_price = min(price),
+            max_price = max(price))
+clean_diamonds %>% 
+  group_by(color) %>% 
+  summarise(count = n(),
+            mean_price = mean(price),
+            min_price = min(price),
+            max_price = max(price))
+clean_diamonds %>% 
+  group_by(clarity) %>% 
+  summarise(count = n(), 
+            mean_price = mean(price), 
+            min_price = min(price), 
+            max_price = max(price))
 
-
+ggplot(data = clean_diamonds,
+       mapping = aes(x = carat,
+                     y = price,
+                     colour = cut,
+                     alpha = 0.05)) +
+  geom_point(size = 1) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Scatter Plot of Carat against Price",
+       subtitle = "Colours represent Cut",
+       x = "Carat (weight of diamond)",
+       y = "Price (USD)",
+       colour = "") +
+  guides(alpha = "none") +
+  theme(legend.position = "bottom")
 ```
 
 
 ## Exercise 2
 
 ```{r}
-
-diamonds <- diamonds %>%
+clean_diamonds <- clean_diamonds %>%
   mutate(table_mm = table_pct * width_mm / 100)
 
 # Overall table_mm arithmetic mean?
-
-
-
-
-
-
+clean_diamonds %>% 
+  summarise(mean_table_mm = mean(table_mm))
 # table_mm arithmetic mean within each clarity category
-
-
-
-
-
-
+clean_diamonds %>% 
+  group_by(clarity) %>%
+  summarise(mean_table_mm = mean(table_mm))
 ```
 
-_Add your comment here_
+As the clarity of the diamond increases the average table length decreases
 
 ```{r}
 # calculate the arithmetic mean across all numeric variables
+clean_diamonds %>% 
+  summarise(across(where(is.numeric),
+              \(x) mean(x, na.rm = TRUE),
+              .names = "avg_{.col}"))
 
 
 
@@ -71,10 +101,15 @@ _Add your comment here_
 ## Exercise 3
 
 ```{r}
-# Write gmean() command
-
-
-
+gmean <- function(x){
+  if(any(!is.numeric(x)) || any(x <= 0)) {
+    warning("X inputs must be greater than zero and numerical for geometric mean calculations")
+    return(NaN)
+  }
+  geometric_mean <- exp(mean(log(x)))
+  
+  return(geometric_mean)
+}
 ```
 
 ## Exercise 4
@@ -92,27 +127,12 @@ test_data <- list(
 
 
 # Create for loop to test gmean() on the above examples
-
-
-```
-
-
-## Exercise 5
-
-```{r}
-# Copy gmean() from Ex 3 and edit it to check the input
-
-
-
-
-
-# Copy your code from Ex 4 to test your new command
-
-
-
-
+for (i in seq_along(test_data)) {
+  gmean_output <- gmean(test_data[[i]])
+}
 
 ```
+
 
 ## Exercise 6
 
@@ -142,35 +162,3 @@ test_data <- list(
 ```
 
 _Add your comment here_
-
-
-## Exercise 8 (optional)
-
-```{r}
-# Create gmean2() that computes the geometric mean 
-#   that uses the original definition
-
-
-
-
-
-
-```
-
-
-## Exercise 9 (optional)
-
-```{r}
-# Create a function that computes the harmonic mean
-
-
-
-
-
-
-
-```
-
-## Exercise 10 (optional)
-
-_Do derivation on paper, unless you know how to write LaTeX code_
